@@ -20,7 +20,7 @@ def getGenes(datadir="data", cellType="hep"):
 
 def getDETable(datadir="data", cellType="hep"):
     file = os.path.join(datadir, f"{cellType}-glm-de-test.csv")
-    x = pd.read_csv(file)
+    x = pd.read_csv(file).iloc[:,1:]
     numberCols = ['l2fc', 'sd', 'pval', 'position']
     for c in numberCols:
         x[c] = x[c].map(lambda y: "{:.4f}".format(y))
