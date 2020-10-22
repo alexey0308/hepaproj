@@ -5,10 +5,18 @@ import dash_html_components as html
 import pandas as pd
 import os
 import dash_table
-from  dataimport import getCellAnno, getFracs, getGenes, getDETable
+from  .dataimport import getCellAnno, getFracs, getGenes, getDETable
+import yaml
+
+with open("src/config.yaml") as file:
+    config = yaml.safe_load(file)
+
+datadir = config["datadir"]
 
 app = dash.Dash()
 dash.Dash(name=__name__)
+server = app.server
+
 
 def x2labels(x):
     return [{'label':y, 'value':y} for y in x]
@@ -28,23 +36,32 @@ def geneListDrop(genes):
 
 def resultTable(tbl):
     dt = dash_table.DataTable(
-        data=tbl.to_dict("records"),
+        data=tbl.iloc[1:30,:].to_dict("records"),
         columns=[{'id':c, 'name':c} for c in tbl.columns],
-        page_size=100
+        page_size=100,
+        filter_action="native",
+        sort_action="native"
     )
     return dt
 
-ann = getCellAnno(cellType="hep")
-genes = getGenes(cellType="hep")
-# fracs = getFracs(cellType="hep")
-tbl = getDETable(cellType="hep")
+def plotGene():
+    i = 0
+    values = fracs[i, :].toarray()[0]
+    etaq = ann["etaq"].values
+
+    fig = px.scatter(x = etaq, y = values)
+
+ann = getCellAnno(datadir, cellType="hep").iloc[0:200,:]
+genes = getGenes(datadir, cellType="hep")[0:10]
+fracs = getFracs(datadir, cellType="hep")
+tbl = getDETable(datadir, cellType="hep")
 
 app.layout = html.Div(children=[
     html.H2("Hepatocytes", style={'color': "dodgerblue"}, className="pageh2")
     ,cellTypeDrop()
     ,geneListDrop(genes)
     ,resultTable(tbl)
-], className='two columns')
+], style={"width":"50%"})
 
 if __name__ == '__main__':
     app.run_server(debug=True)
