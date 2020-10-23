@@ -16,7 +16,7 @@ def getFracs(datadir="data", cellType="hep"):
 def getGenes(datadir="data", cellType="hep"):
     file = os.path.join(datadir, f"{cellType}-genes.csv")
     x = pd.read_csv(file)
-    return x.iloc[:,1].to_list()
+    return x.iloc[:,1]
 
 def getDETable(datadir="data", cellType="hep"):
     file = os.path.join(datadir, f"{cellType}-glm-de-test.csv")
