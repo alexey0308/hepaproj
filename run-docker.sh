@@ -1,5 +1,7 @@
 docker container run -it \
-    -v /home/alex/proj/hepatoendo/app/data:/app/data \
+    -v "$PWD":/app \
     -p 127.0.0.1:8001:8000 \
+    --name kiapp \
+    --restart always \
     hepapp \
-    gunicorn -b 0.0.0.0:8000 src.app:server
+    gunicorn --reload -b 0.0.0.0:8000 src.app:server --pythonpath=src
