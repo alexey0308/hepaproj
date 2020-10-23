@@ -4,6 +4,7 @@ import plotly.express as px
 import dash_html_components as html
 import pandas as pd
 import os
+from .plots import plotGene
 import dash_table
 from  .dataimport import getCellAnno, getFracs, getGenes, getDETable
 import yaml
@@ -44,17 +45,11 @@ def resultTable(tbl):
     )
     return dt
 
-def plotGene():
-    i = 0
-    values = fracs[i, :].toarray()[0]
-    etaq = ann["etaq"].values
-
-    fig = px.scatter(x = etaq, y = values)
-
-ann = getCellAnno(datadir, cellType="hep").iloc[0:200,:]
-genes = getGenes(datadir, cellType="hep")[0:10]
-fracs = getFracs(datadir, cellType="hep")
-tbl = getDETable(datadir, cellType="hep")
+cellType = "hep"
+ann = getCellAnno(datadir, cellType).iloc[0:200,:]
+genes =  getGenes(datadir, cellType)[0:10]
+fracs =  getFracs(datadir, cellType)
+tbl =  getDETable(datadir, cellType)
 
 app.layout = html.Div(children=[
     html.H2("Hepatocytes", style={'color': "dodgerblue"}, className="pageh2")
