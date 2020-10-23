@@ -1,6 +1,5 @@
 import dash_core_components as dcc
 import dash
-import plotly.express as px
 import dash_html_components as html
 import pandas as pd
 import os
@@ -9,7 +8,7 @@ import dash_table
 from  .dataimport import getCellAnno, getFracs, getGenes, getDETable
 import yaml
 
-with open("src/config.yaml") as file:
+with open("config.yaml") as file:
     config = yaml.safe_load(file)
 
 datadir = config["datadir"]
