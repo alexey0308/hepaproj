@@ -1,11 +1,12 @@
 import dash_core_components as dcc
 import dash
+import numpy as np
 import dash_html_components as html
 import pandas as pd
 import os
-from .plots import plotGene
+from plots import plotGene
 import dash_table
-from  .dataimport import getCellAnno, getFracs, getGenes, getDETable
+from  dataimport import getCellAnno, getFracs, getGenes, getDETable
 import yaml
 
 with open("config.yaml") as file:
@@ -36,7 +37,7 @@ def geneListDrop(genes):
 
 def resultTable(tbl):
     dt = dash_table.DataTable(
-        data=tbl.iloc[1:30,:].to_dict("records"),
+        data=tbl.to_dict("records"),
         columns=[{'id':c, 'name':c} for c in tbl.columns],
         page_size=100,
         filter_action="native",
@@ -44,18 +45,36 @@ def resultTable(tbl):
     )
     return dt
 
-cellType = "hep"
-ann = getCellAnno(datadir, cellType).iloc[0:200,:]
-genes =  getGenes(datadir, cellType)[0:10]
-fracs =  getFracs(datadir, cellType)
-tbl =  getDETable(datadir, cellType)
+def readCellType(cellType, datadir):
+    ann = getCellAnno(datadir, cellType)
+    ann.mouse = pd.Categorical(ann.Genotype)
+    genes =  getGenes(datadir, cellType)
+    fracs =  getFracs(datadir, cellType)
+    tbl =  getDETable(datadir, cellType)
+    return {"ann":ann, "genes":genes, "fracs":fracs, "detbl":tbl}
 
-app.layout = html.Div(children=[
-    html.H2("Hepatocytes", style={'color': "dodgerblue"}, className="pageh2")
-    ,cellTypeDrop()
-    ,geneListDrop(genes)
-    ,resultTable(tbl)
-], style={"width":"50%"})
+DATA = {}
+for cellType in ["hep", "lsec"]:
+    DATA[cellType] = readCellType(cellType, datadir)
+
+cellType = "hep"
+gene = "0610040b10rik"
+d =  DATA[cellType]
+fig = plotGene(d["ann"].etaq,
+               np.sqrt(d["fracs"][d["genes"] == gene,:].toarray()[0]),
+               d["ann"].mouse)
+
+app.layout = html.Div(
+    children=[
+        html.Div(
+            children=[
+                html.H2("Hepatocytes", style={'color': "dodgerblue"}, className="pageh2")
+                ,fig
+                ,cellTypeDrop()
+                ,geneListDrop(d["genes"])
+                ,resultTable(d["detbl"])
+            ], style={"width":"80%"}),
+    ])
 
 if __name__ == '__main__':
     app.run_server(debug=True)
