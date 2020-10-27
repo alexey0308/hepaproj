@@ -8,9 +8,11 @@ from plots import plotGene
 import dash_table
 from  dataimport import getCellAnno, getFracs, getGenes, getDETable
 import yaml
+from dash.dependencies import Input, Output
 
 with open("config.yaml") as file:
     config = yaml.safe_load(file)
+
 
 datadir = config["datadir"]
 
@@ -24,15 +26,28 @@ def x2labels(x):
 
 def cellTypeDrop():
     return dcc.Dropdown(
+        id="cellTypeSelector",
         options=[
             {'label':"hepatocytes", 'value': "hep"},
             {'label':"lsec", 'value': "lsec"},
-        ]
+        ], value="hep"
     )
 
-def geneListDrop(genes):
+@app.callback(
+    Output("geneHeader", "children"),
+    Input("geneSelector", "value")
+)
+def updateGeneHeader(gene):
+    return "Gene: {}".format(gene)
+
+
+def geneListDrop(genes, default=None):
+    if default is None:
+        default = genes[0]
     x = dcc.Dropdown(
-        options=[{"label": x, "value": x} for x in genes])
+        id="geneSelector",
+        options=[{"label": x, "value": x} for x in genes],
+        value=default)
     return x
 
 def resultTable(tbl):
@@ -59,17 +74,30 @@ for cellType in ["hep", "lsec"]:
 
 cellType = "hep"
 gene = "0610040b10rik"
-d =  DATA[cellType]
+d = DATA[cellType]
 fig = plotGene(d["ann"].etaq,
                np.sqrt(d["fracs"][d["genes"] == gene,:].toarray()[0]),
                d["ann"].mouse)
+
+@app.callback(
+    Output("genePlot", "figure"),
+    [Input("geneSelector", "value"), Input("cellTypeSelector", "value")])
+def updateGeneFigure(gene, cellType):
+    d = DATA[cellType]
+    fig = plotGene(d["ann"].etaq,
+                np.sqrt(d["fracs"][d["genes"] == gene,:].toarray()[0]),
+                d["ann"].mouse)
+    return fig
+
 
 app.layout = html.Div(
     children=[
         html.Div(
             children=[
-                html.H2("Hepatocytes", style={'color': "dodgerblue"}, className="pageh2")
-                ,fig
+                html.H3(id="geneHeader",
+                        children=gene,
+                        style={'color': "dodgerblue"})
+                ,dcc.Graph(id="genePlot")
                 ,cellTypeDrop()
                 ,geneListDrop(d["genes"])
                 ,resultTable(d["detbl"])
