@@ -6,7 +6,7 @@ import pandas as pd
 import os
 from plots import plotGene
 import dash_table
-from  dataimport import getCellAnno, getFracs, getGenes, getDETable
+from  dataimport import readAll
 import yaml
 from dash.dependencies import Input, Output
 
@@ -15,6 +15,7 @@ with open("config.yaml") as file:
 
 
 datadir = config["datadir"]
+DATA = readAll(datadir)
 
 app = dash.Dash()
 dash.Dash(name=__name__)
@@ -25,57 +26,42 @@ def x2labels(x):
     return [{'label':y, 'value':y} for y in x]
 
 def cellTypeDrop():
-    return dcc.Dropdown(
+    return dcc.RadioItems(
         id="cellTypeSelector",
         options=[
             {'label':"hepatocytes", 'value': "hep"},
             {'label':"lsec", 'value': "lsec"},
-        ], value="hep"
-    )
+        ], value="hep")
 
 
-
-def geneListDrop(genes, default=None):
-    if default is None:
-        default = genes[0]
-    x = dcc.Dropdown(
-        id="geneSelector",
-        options=[{"label": x, "value": x} for x in genes],
-        value=default)
-    return x
-
-def resultTable(tbl):
+def resultTable():
     dt = dash_table.DataTable(
-        data=tbl.to_dict("records"),
-        columns=[{'id':c, 'name':c} for c in tbl.columns],
+        id="resultTable",
         page_size=30,
         filter_action="native",
         sort_action="native"
     )
     return dt
 
-def readCellType(cellType, datadir):
-    ann = getCellAnno(datadir, cellType)
-    ann.mouse = pd.Categorical(ann.Genotype)
-    genes =  getGenes(datadir, cellType)
-    fracs =  getFracs(datadir, cellType)
-    tbl =  getDETable(datadir, cellType)
-    return {"ann":ann, "genes":genes, "fracs":fracs, "detbl":tbl}
+@app.callback([Output("resultTable", "data"), Output("resultTable", "columns")],
+              Input("cellTypeSelector", "value"))
+def updateResultTable(cellType):
+    tbl = DATA[cellType]["detbl"]
+    data=tbl.to_dict("records")
+    columns=[{'id':c, 'name':c} for c in tbl.columns]
+    return data, columns
 
-DATA = {}
-for cellType in ["hep", "lsec"]:
-    DATA[cellType] = readCellType(cellType, datadir)
 
-cellType = "hep"
-gene = "0610040b10rik"
-d = DATA[cellType]
-fig = plotGene(d["ann"].etaq,
-               np.sqrt(d["fracs"][d["genes"] == gene,:].toarray()[0]),
-               d["ann"].mouse)
+@app.callback(Output("geneListDrop", "options"), Input("cellTypeSelector", "value"))
+def updateGeneList(cellType):
+    genes = DATA[cellType]["genes"]
+    options = [{"label": x, "value": x} for x in genes]
+    return options
+
 
 @app.callback(
     [Output("genePlot", "figure"), Output("geneHeader", "children")],
-    [Input("geneSelector", "value"), Input("cellTypeSelector", "value")])
+    [Input("geneListDrop", "value"), Input("cellTypeSelector", "value")])
 def updateGeneFigure(gene, cellType):
     d = DATA[cellType]
     if (d["genes"] != gene).all():
@@ -90,13 +76,13 @@ app.layout = html.Div(
     children=[
         html.Div(
             children=[
-                html.H3(id="geneHeader",
-                        children=gene,
-                        style={'color': "dodgerblue"})
-                ,dcc.Graph(id="genePlot")
-                ,cellTypeDrop()
-                ,geneListDrop(d["genes"])
-                ,resultTable(d["detbl"])
+                html.H3(id="geneHeader", style={'color': "dodgerblue"}),
+                dcc.Graph(id="genePlot"),
+                html.Div(
+                    children=[cellTypeDrop(), dcc.Dropdown(id="geneListDrop")],
+                    id="selectorsContainer"
+                ),
+                resultTable()
             ], style={"width":"80%"}),
     ])
 

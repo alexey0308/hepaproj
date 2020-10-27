@@ -21,9 +21,22 @@ def getGenes(datadir="data", cellType="hep"):
 def getDETable(datadir="data", cellType="hep"):
     file = os.path.join(datadir, f"{cellType}-glm-de-test.csv")
     x = pd.read_csv(file).iloc[:,1:]
-    numberCols = ['l2fc', 'sd', 'pval', 'position']
+    numberCols = ['l2fc', 'sd', 'pval']
     for c in numberCols:
         x[c] = x[c].map(lambda y: "{:.4f}".format(y))
+    x.position = pd.Categorical(x.position)
     return x
 
+def readCellType(cellType, datadir):
+    ann = getCellAnno(datadir, cellType)
+    ann.mouse = pd.Categorical(ann.Genotype)
+    genes =  getGenes(datadir, cellType)
+    fracs =  getFracs(datadir, cellType)
+    tbl =  getDETable(datadir, cellType)
+    return {"ann":ann, "genes":genes, "fracs":fracs, "detbl":tbl}
 
+def readAll(datadir="data"):
+    DATA = {}
+    for cellType in ["hep", "lsec"]:
+        DATA[cellType] = readCellType(cellType, datadir)
+    return DATA
