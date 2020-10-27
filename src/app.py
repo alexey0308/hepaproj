@@ -33,12 +33,6 @@ def cellTypeDrop():
         ], value="hep"
     )
 
-@app.callback(
-    Output("geneHeader", "children"),
-    Input("geneSelector", "value")
-)
-def updateGeneHeader(gene):
-    return "Gene: {}".format(gene)
 
 
 def geneListDrop(genes, default=None):
@@ -54,7 +48,7 @@ def resultTable(tbl):
     dt = dash_table.DataTable(
         data=tbl.to_dict("records"),
         columns=[{'id':c, 'name':c} for c in tbl.columns],
-        page_size=100,
+        page_size=30,
         filter_action="native",
         sort_action="native"
     )
@@ -80,14 +74,16 @@ fig = plotGene(d["ann"].etaq,
                d["ann"].mouse)
 
 @app.callback(
-    Output("genePlot", "figure"),
+    [Output("genePlot", "figure"), Output("geneHeader", "children")],
     [Input("geneSelector", "value"), Input("cellTypeSelector", "value")])
 def updateGeneFigure(gene, cellType):
     d = DATA[cellType]
+    if (d["genes"] != gene).all():
+        raise dash.exceptions.PreventUpdate
     fig = plotGene(d["ann"].etaq,
                 np.sqrt(d["fracs"][d["genes"] == gene,:].toarray()[0]),
                 d["ann"].mouse)
-    return fig
+    return fig, "Gene: {}".format(gene)
 
 
 app.layout = html.Div(
