@@ -16,10 +16,10 @@ with open("config.yaml") as file:
 
 datadir = config["datadir"]
 DATA = readAll(datadir)
-
-app = dash.Dash()
-dash.Dash(name=__name__)
+import flask; print(flask.helpers.get_root_path(__name__))
+app = dash.Dash(name=__name__, assets_folder="assets")
 server = app.server
+print(app.config)
 
 
 def x2labels(x):
@@ -77,13 +77,15 @@ app.layout = html.Div(
         html.Div(
             children=[
                 html.H3(id="geneHeader", style={'color': "dodgerblue"}),
-                dcc.Graph(id="genePlot"),
+                dcc.Graph(id="genePlot", style={"width": "800px", "height": "500px",
+                                                "margin":"auto"}),
                 html.Div(
                     children=[cellTypeDrop(), dcc.Dropdown(id="geneListDrop")],
                     id="selectorsContainer"
                 ),
+                html.H3("Comparison along the central(0.0)-portal(1.0) axis"),
                 resultTable()
-            ], style={"width":"80%"}),
+            ], style={"width":"80%", "margin":"auto"}),
     ])
 
 if __name__ == '__main__':
