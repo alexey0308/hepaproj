@@ -51,7 +51,8 @@ genes <- write.csv(rownames(fracs)[testGenes], file.path(pytestdir, "lsec-genes.
 
 tbls <- list(
   "hep-glm-de-test.csv",
-  "lsec-glm-de-test.csv"
+  "lsec-glm-de-test.csv",
+  "spline.csv"
 )
 for (x in tbls) {
   file.copy(
