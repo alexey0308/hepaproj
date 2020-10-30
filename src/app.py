@@ -6,7 +6,7 @@ import pandas as pd
 import os
 from plots import plotGeneScatter, plotGeneLines
 import dash_table
-from  dataimport import readAll
+from  dataimport import readAll, readSpline, getGeneBetas, getMouseSplines
 import yaml
 from dash.dependencies import Input, Output
 
@@ -16,6 +16,8 @@ with open("config.yaml") as file:
 
 datadir = config["datadir"]
 DATA = readAll(datadir)
+SPLINE = readSpline(datadir)
+
 import flask; print(flask.helpers.get_root_path(__name__))
 app = dash.Dash(name=__name__, assets_folder="assets")
 server = app.server
@@ -66,7 +68,7 @@ def updateGeneScatterFigure(gene, cellType):
         raise dash.exceptions.PreventUpdate
     fig = plotGeneScatter(d["ann"].etaq,
                 np.sqrt(d["fracs"][d["genes"] == gene,:].toarray()[0]),
-                d["ann"].mouse)
+                          d["ann"].Genotype)
     return fig, "Gene: {}".format(gene)
 
 
@@ -74,12 +76,13 @@ def updateGeneScatterFigure(gene, cellType):
     Output("genePlotLines", "figure"),
     [Input("geneListDrop", "value"), Input("cellTypeSelector", "value")])
 def updateGeneLineFigure(gene, cellType):
-    d = DATA[cellType]
-    if (d["genes"] != gene).all():
-        raise dash.exceptions.PreventUpdate
-    fig = plotGeneLines(d["ann"].etaq,
-                np.sqrt(d["fracs"][d["genes"] == gene,:].toarray()[0]),
-                d["ann"].mouse)
+    betas = getGeneBetas(SPLINE["betas"],  cellType, gene)
+    if betas.shape[0] == 0:
+        return dict(data=[], layout={})
+    x = getMouseSplines(betas, SPLINE["spline"]).melt(id_vars="etaq")
+    mouse2genotype = DATA['hep']['ann'][['mouse', 'Genotype']].drop_duplicates()
+    x = x.join(mouse2genotype.set_index("mouse"), on="mouse")
+    fig = plotGeneLines(x.etaq, x.value, x.mouse, x.Genotype)
     return fig
 
 
