@@ -21,7 +21,7 @@ def plotGeneLines(etaq, values, mouse, groups):
     fig = px.line(x=etaq.values,
                   y=values.values,
                   color=groups,
-                  line_group=groups,
+                  line_group=mouse,
                   labels={
                       "x":"central ➡ portal",
                       "y":"sqrt(umi/total)"})
