@@ -1,12 +1,8 @@
 #selectorsContainer {
-    display: flex;
-    justify-content: center;
     align-items: center;
+    max-width: 300px;
 }
 
-#geneListDrop, #cellTypeSelector {
-    margin: 30px;
-}
 
 #geneListDrop {
     min-width:250px;
