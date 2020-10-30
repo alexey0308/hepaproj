@@ -78,7 +78,7 @@ def updateGeneScatterFigure(gene, cellType):
 def updateGeneLineFigure(gene, cellType):
     betas = getGeneBetas(SPLINE["betas"],  cellType, gene)
     if betas.shape[0] == 0:
-        return dict(data=[], layout={})
+        return dict(data=[], layout={"title":"no estimation for this gene"})
     x = getMouseSplines(betas, SPLINE["spline"]).melt(id_vars="etaq")
     mouse2genotype = DATA['hep']['ann'][['mouse', 'Genotype']].drop_duplicates()
     x = x.join(mouse2genotype.set_index("mouse"), on="mouse")
