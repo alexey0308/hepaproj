@@ -57,7 +57,7 @@ tbls <- list(
 for (x in tbls) {
   file.copy(
     file.path("results", "tables", x),
-    file.path(pydir, x))
+    file.path(pydir, x), overwrite = TRUE)
 }
 
 { cat("save beta values for every mouse... ")
