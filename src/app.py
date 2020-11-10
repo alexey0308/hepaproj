@@ -10,11 +10,10 @@ from  dataimport import readAll, readSpline, getGeneBetas, getMouseSplines
 import yaml
 from dash.dependencies import Input, Output
 
-with open("config.yaml") as file:
-    config = yaml.safe_load(file)
+# with open("config.yaml") as file:
+#     config = yaml.safe_load(file)
 
-
-datadir = config["datadir"]
+datadir = os.environ.get("HEPAPP_DATA", default="data")
 DATA = readAll(datadir)
 SPLINE = readSpline(datadir)
 
