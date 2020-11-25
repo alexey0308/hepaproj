@@ -1,4 +1,6 @@
 import dash_core_components as dcc
+from flask import request
+import re
 import dash
 import numpy as np
 import dash_html_components as html
@@ -9,6 +11,7 @@ import dash_table
 from  .dataimport import readAll, readSpline, getGeneBetas, getMouseSplines
 import yaml
 from dash.dependencies import Input, Output
+from .reporting import createGenesZip
 # from . import reporting
 
 
@@ -83,6 +86,34 @@ def updateGeneLineFigure(gene, cellType):
     return fig
 
 
+def splitByDelimiters(x):
+    return re.split("[,/;\t ]", x)
+
+@app.server.route("/genes", methods=["POST"])
+def genesZip():
+    cellType = request.form['cellTypeInput']
+    genes = splitByDelimiters(request.form['genesInput'])
+    buf = createGenesZip(genes, DATA[cellType], SPLINE,
+                         width=1000, height=800,
+                         cellType=cellType)
+    buf.seek(0)
+    return flask.send_file(buf, attachment_filename="genes.zip")
+
+def downloadButton(uri):
+    button = html.Form(
+        action=uri,
+        target="_blank",
+        method="post",
+        children=[
+            dcc.Input(id="geneFormInput", name="geneList"), 
+            html.Button(
+                className="button",
+                type="submit",
+                children=["download"]
+            )
+        ]
+    )
+    return button
 
 app.layout = html.Div(
     children=[
@@ -99,6 +130,9 @@ app.layout = html.Div(
                 html.Div(
                     children=[cellTypeDrop(), dcc.Dropdown(id="geneListDrop")],
                     id="selectorsContainer"
+                ),
+                html.Div(
+                    children=[downloadButton("genes")]
                 ),
                 html.H3("Comparison along the central(0.0)-portal(1.0) axis"),
                 resultTable()
