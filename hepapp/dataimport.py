@@ -60,18 +60,17 @@ class DataContainer:
 
     def read_data(self):
         data = {}
-        # import pdb; pdb.set_trace()
         for celltype in self.config['celltypes-files'].keys():
             data[celltype] = self.read_cell_type(celltype)
         return data
 
     def read_spline(self):
-        # import pdb; pdb.set_trace()
-        betas = pd.read_csv(
-            self.data_path(self.config["spline-files"]["betas"]))
-        spline = pd.read_csv(
-            self.data_path(self.config["spline-files"]["spline"])).to_numpy()
-        return dict(betas=betas, spline=spline)
+        spline_data = {
+            k: pd.read_csv(self.data_path(v))
+            for k, v in self.config["spline-files"].items()
+        }
+        spline_data['spline'] = spline_data['spline'].to_numpy()
+        return spline_data
 
 
 def subset_gene_betas(betas, celltype, gene):
