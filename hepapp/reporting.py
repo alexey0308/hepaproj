@@ -11,7 +11,7 @@ from . import dataimport
 
 def singleGeneScatter(gene, d):
     """
-    d = DATA[cellType]
+    d = DATA[celltype]
     """
     if (d["genes"] != gene).all():
         return None
@@ -21,8 +21,8 @@ def singleGeneScatter(gene, d):
     return fig
 
 
-def singleGeneLine(gene, betas, spline, d, cellType):
-    genebetas = dataimport.getGeneBetas(betas,  cellType, gene)
+def singleGeneLine(gene, betas, spline, d, celltype):
+    genebetas = dataimport.getGeneBetas(betas,  celltype, gene)
     if genebetas.shape[0] == 0:
         return None
     x = dataimport.getMouseSplines(genebetas, spline).melt(id_vars="etaq")
@@ -31,14 +31,14 @@ def singleGeneLine(gene, betas, spline, d, cellType):
     fig = plots.plotGeneLines(x.etaq, x.value, x.mouse, x.Genotype)
     return fig
 
-def createGenesZip(genes, d, s, cellType, **kwargs):
+def createGenesZip(genes, d, s, celltype, **kwargs):
     """
     Walk through genes, create figures, write to zipped byte array
     """
     f = partial(singleGeneScatter, d=d)
     scatterfigs = {gene:f(gene) for gene in genes}
     f = partial(singleGeneLine, d=d, betas=s['betas'], spline=s['spline'],
-                cellType=cellType)
+                celltype=celltype)
     linefigs = {gene:f(gene) for gene in genes}
     buf = io.BytesIO()
     zipbuf = zipfile.ZipFile(buf, "w")

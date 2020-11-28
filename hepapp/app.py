@@ -24,7 +24,7 @@ app = dash.Dash(name=__name__, assets_folder="assets")
 server = app.server
 
 
-def cellTypeDrop():
+def celltypeDrop():
     return dcc.RadioItems(
         id="cellTypeSelector",
         options=[
@@ -44,8 +44,8 @@ def resultTable():
 
 @app.callback([Output("resultTable", "data"), Output("resultTable", "columns")],
               Input("cellTypeSelector", "value"))
-def updateResultTable(cellType):
-    tbl = DATA[cellType]["detbl"]
+def updateResultTable(celltype):
+    tbl = DATA[celltype]["detbl"]
     data=tbl.to_dict("records")
     columns=[{'id':c, 'name':c} for c in tbl.columns]
     return data, columns
@@ -53,8 +53,8 @@ def updateResultTable(cellType):
 
 @app.callback(Output("geneListDrop", "options"),
               Input("cellTypeSelector", "value"))
-def updateGeneList(cellType):
-    genes = DATA[cellType]["genes"]
+def updateGeneList(celltype):
+    genes = DATA[celltype]["genes"]
     options = [{"label": x, "value": x} for x in genes]
     return options
 
@@ -62,8 +62,8 @@ def updateGeneList(cellType):
 @app.callback(
     [Output("genePlotScatter", "figure"), Output("geneHeader", "children")],
     [Input("geneListDrop", "value"), Input("cellTypeSelector", "value")])
-def updateGeneScatterFigure(gene, cellType):
-    d = DATA[cellType]
+def updateGeneScatterFigure(gene, celltype):
+    d = DATA[celltype]
     if (d["genes"] != gene).all():
         raise dash.exceptions.PreventUpdate
     fig = plotGeneScatter(d["ann"].etaq,
@@ -75,8 +75,8 @@ def updateGeneScatterFigure(gene, cellType):
 @app.callback(
     Output("genePlotLines", "figure"),
     [Input("geneListDrop", "value"), Input("cellTypeSelector", "value")])
-def updateGeneLineFigure(gene, cellType):
-    betas = getGeneBetas(SPLINE["betas"],  cellType, gene)
+def updateGeneLineFigure(gene, celltype):
+    betas = getGeneBetas(SPLINE["betas"],  celltype, gene)
     if betas.shape[0] == 0:
         return dict(data=[], layout={"title":"no estimation for this gene"})
     x = getMouseSplines(betas, SPLINE["spline"]).melt(id_vars="etaq")
@@ -91,11 +91,11 @@ def splitByDelimiters(x):
 
 @app.server.route("/genes", methods=["POST"])
 def genesZip():
-    cellType = request.form['cellTypeInput']
+    celltype = request.form['cellTypeInput']
     genes = splitByDelimiters(request.form['genesInput'])
-    buf = createGenesZip(genes, DATA[cellType], SPLINE,
+    buf = createGenesZip(genes, DATA[celltype], SPLINE,
                          width=1000, height=800,
-                         cellType=cellType)
+                         celltype=celltype)
     buf.seek(0)
     return flask.send_file(buf, attachment_filename="genes.zip")
 
@@ -128,7 +128,7 @@ app.layout = html.Div(
                 ], style={"height": "500px", "margin":"auto",
                           "display": "flex"}),
                 html.Div(
-                    children=[cellTypeDrop(), dcc.Dropdown(id="geneListDrop")],
+                    children=[celltypeDrop(), dcc.Dropdown(id="geneListDrop")],
                     id="selectorsContainer"
                 ),
                 html.Div(
