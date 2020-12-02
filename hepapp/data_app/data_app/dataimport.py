@@ -51,7 +51,7 @@ class DataContainer:
 
     def read_cell_type(self, celltype):
         data = {
-            "ann": self.get_cell_anno(celltype),
+            "anno": self.get_cell_anno(celltype),
             "genes": self.get_genes(celltype),
             "fracs": self.get_fracs(celltype),
             "de": self.get_de_table(celltype),
@@ -72,12 +72,12 @@ class DataContainer:
         spline_data['spline'] = spline_data['spline'].to_numpy()
         return spline_data
 
+    def get_gene_betas(self, celltype, gene):
+        betas = self.spline["betas"]
+        return betas[(betas.celltype == celltype) & (betas.gene == gene)]
 
-def subset_gene_betas(betas, celltype, gene):
-    return betas[(betas.celltype == celltype) & (betas.gene == gene)]
 
-
-def get_mouse_splines(betas, spline):
+def compute_mouse_splines(betas, spline):
     xcols = ["X1", "X2", "X3", "X4"]
     coefs = betas[xcols].to_numpy().T
     res = spline.dot(coefs)
