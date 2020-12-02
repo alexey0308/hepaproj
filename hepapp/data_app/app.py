@@ -27,7 +27,7 @@ def get_fracs(celltype, gene):
     data = dc.data[celltype]
     fracs = data["fracs"]
     if (data["genes"] != gene).all():
-        return gene
+        return {"gene": gene, "fracs": []}
     return {
         "gene": gene,
         "fracs": fracs[data["genes"] == gene, :].toarray()[0].tolist(),
@@ -36,7 +36,7 @@ def get_fracs(celltype, gene):
 
 @dataapp.route("/de_table/<celltype>")
 def get_de_table(celltype):
-    return dc.get_de_table(celltype)
+    return dc.get_de_table(celltype).to_dict()
 
 
 if __name__ == "__main__":
