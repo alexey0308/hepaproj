@@ -1,9 +1,12 @@
+# from .data_app.dataimport import DataContainer
 from .data_app.dataimport import DataContainer
-from flask import Flask
+from flask import Flask, jsonify
 import sys, os
+from flask_caching import Cache
 
 configfile = os.getenv("DATA_CONFIG") or "config.yaml"
 dataapp = Flask("dataapp")
+cache = Cache(dataapp, config={'CACHE_TYPE': 'simple'})
 dc = DataContainer(configfile)
 
 
@@ -23,6 +26,7 @@ def get_cell_anno(celltype):
 
 
 @dataapp.route("/fracs/<celltype>/<gene>")
+@cache.cached(timeout = 500)
 def get_fracs(celltype, gene):
     data = dc.data[celltype]
     fracs = data["fracs"]
@@ -38,6 +42,9 @@ def get_fracs(celltype, gene):
 def get_de_table(celltype):
     return dc.get_de_table(celltype).to_dict()
 
+@dataapp.route("/spline")
+def get_spline():
+    return jsonify(dc.get_spline().tolist())
 
 if __name__ == "__main__":
     dataapp.run()

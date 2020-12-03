@@ -6,13 +6,11 @@ import numpy as np
 import dash_html_components as html
 import pandas as pd
 import os
-from .plots import plotGeneScatter, plotGeneLines
+from .plots_app.plots import plotGeneScatter, plotGeneLines
 import dash_table
 import yaml
 from dash.dependencies import Input, Output
 from requests import Session
-
-# from . import reporting
 
 
 import flask
@@ -22,6 +20,7 @@ server = app.server
 reqsession = Session()
 
 DATAHOST = os.getenv("DATAHOST") or "http://127.0.0.1:5080"
+PLOTTINGHOST = os.getenv("PLOTTINGHOST") or "http://127.0.0.1:5081"
 
 
 def celltypeDrop():
@@ -78,19 +77,13 @@ def updateGeneScatterFigure(gene, celltype):
     )
     return fig, "Gene: {}".format(gene)
 
-
-# @app.callback(
-#     Output("genePlotLines", "figure"),
-#     [Input("geneListDrop", "value"), Input("cellTypeSelector", "value")])
-# def updateGeneLineFigure(gene, celltype):
-#     betas = getGeneBetas(SPLINE["betas"],  celltype, gene)
-#     if betas.shape[0] == 0:
-#         return dict(data=[], layout={"title":"no estimation for this gene"})
-#     x = getMouseSplines(betas, SPLINE["spline"]).melt(id_vars="etaq")
-#     mouse2genotype = DATA['hep']['ann'][['mouse', 'Genotype']].drop_duplicates()
-#     x = x.join(mouse2genotype.set_index("mouse"), on="mouse")
-#     fig = plotGeneLines(x.etaq, x.value, x.mouse, x.Genotype)
-#     return fig
+@app.callback(
+    Output("genePlotLines", "figure"),
+    [Input("geneListDrop", "value"), Input("cellTypeSelector", "value")])
+def updateGeneLineFigure(gene, celltype):
+    from plotly.io import from_json
+    fig = from_json(reqsession.get(f"{PLOTTINGHOST}/lines/{celltype}/{gene}").text)
+    return fig
 
 
 def splitByDelimiters(x):

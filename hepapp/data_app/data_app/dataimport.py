@@ -75,12 +75,6 @@ class DataContainer:
     def get_gene_betas(self, celltype, gene):
         betas = self.spline["betas"]
         return betas[(betas.celltype == celltype) & (betas.gene == gene)]
+    def get_spline(self):
+        return self.spline["spline"]
 
-
-def compute_mouse_splines(betas, spline):
-    xcols = ["X1", "X2", "X3", "X4"]
-    coefs = betas[xcols].to_numpy().T
-    res = spline.dot(coefs)
-    res = pd.DataFrame(res, columns=betas.mouse)
-    res['etaq'] = np.linspace(0, 1, res.shape[0])
-    return res
