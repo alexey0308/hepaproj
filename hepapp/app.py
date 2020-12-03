@@ -1,19 +1,20 @@
-import dash_core_components as dcc
-from flask import request
-import re
-import dash
-import numpy as np
-import dash_html_components as html
-import pandas as pd
 import os
-from .plots_app.plots import plotGeneScatter, plotGeneLines
+import re
+
+import dash
+import dash_core_components as dcc
+import dash_html_components as html
 import dash_table
+import flask
+import numpy as np
+import pandas as pd
 import yaml
 from dash.dependencies import Input, Output
+from flask import request
+from plotly.io import from_json
 from requests import Session
 
-
-import flask
+from .plots_app.plots import plotGeneLines, plotGeneScatter
 
 app = dash.Dash(name=__name__, assets_folder="assets")
 server = app.server
@@ -66,22 +67,17 @@ def updateGeneList(celltype):
 def updateGeneScatterFigure(gene, celltype):
     if gene is None:
         raise dash.exceptions.PreventUpdate
-    anno = reqsession.get(f"{DATAHOST}/cell_anno/{celltype}").json()
-    fracs = reqsession.get(f"{DATAHOST}/fracs/{celltype}/{gene}").json()
-    if len(fracs) == 0:
-        raise dash.exceptions.PreventUpdate
-    fig = plotGeneScatter(
-        pd.Series(anno["etaq"]),
-        np.sqrt(fracs["fracs"]),
-        pd.Series(anno["Genotype"])
-    )
+    fig = from_json(reqsession.get(f"{PLOTTINGHOST}/scatter/{celltype}/{gene}").text)
     return fig, "Gene: {}".format(gene)
+
 
 @app.callback(
     Output("genePlotLines", "figure"),
-    [Input("geneListDrop", "value"), Input("cellTypeSelector", "value")])
+    [Input("geneListDrop", "value"), Input("cellTypeSelector", "value")],
+)
 def updateGeneLineFigure(gene, celltype):
     from plotly.io import from_json
+
     fig = from_json(reqsession.get(f"{PLOTTINGHOST}/lines/{celltype}/{gene}").text)
     return fig
 

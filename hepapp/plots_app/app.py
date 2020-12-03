@@ -21,7 +21,7 @@ def compute_mouse_splines(betas, spline):
     return res
 
 @plotapp.route("/lines/<celltype>/<gene>")
-def plot_scatter(celltype, gene):
+def plot_line(celltype, gene):
     betas = pd.DataFrame(reqsession.get(f"{DATAHOST}/betas/{celltype}/{gene}").json())
     if betas.empty:
         return dict(data=[], layout={"title": "no estimation for this gene"})
@@ -33,4 +33,18 @@ def plot_scatter(celltype, gene):
     x = x.join(mouse2genotype.set_index("mouse"), on="mouse")
     values = np.exp(x.value/2)
     fig = plotGeneLines(x.etaq, values, x.mouse, x.Genotype)
+    return Response(fig.to_json(), mimetype="application/json", status = 200)
+
+@plotapp.route("/scatter/<celltype>/<gene>")
+def plot_scatter(celltype, gene):
+    anno = reqsession.get(f"{DATAHOST}/cell_anno/{celltype}").json()
+    fracs = reqsession.get(f"{DATAHOST}/fracs/{celltype}/{gene}").json()["fracs"]
+    fracs = np.array(fracs)
+    if len(fracs) == 0:
+        return {}
+    fig = plotGeneScatter(
+        pd.Series(anno["etaq"]),
+        np.sqrt(fracs),
+        pd.Series(anno["Genotype"])
+    )
     return Response(fig.to_json(), mimetype="application/json", status = 200)
