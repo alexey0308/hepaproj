@@ -5,27 +5,27 @@ import sys, os
 from flask_caching import Cache
 
 configfile = os.getenv("DATA_CONFIG") or "config.yaml"
-dataapp = Flask("dataapp")
-cache = Cache(dataapp, config={'CACHE_TYPE': 'simple'})
+app = Flask("data_app")
+cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 dc = DataContainer(configfile)
 
 
-@dataapp.route("/betas/<celltype>/<gene>")
+@app.route("/betas/<celltype>/<gene>")
 def get_gene_betas(celltype, gene):
     return dc.get_gene_betas(celltype, gene).to_dict()
 
 
-@dataapp.route("/genes/<celltype>")
+@app.route("/genes/<celltype>")
 def get_genes(celltype):
     return dc.data[celltype]["genes"].to_dict()
 
 
-@dataapp.route("/cell_anno/<celltype>")
+@app.route("/cell_anno/<celltype>")
 def get_cell_anno(celltype):
     return dc.data[celltype]["anno"].to_dict()
 
 
-@dataapp.route("/fracs/<celltype>/<gene>")
+@app.route("/fracs/<celltype>/<gene>")
 @cache.cached(timeout = 500)
 def get_fracs(celltype, gene):
     data = dc.data[celltype]
@@ -38,13 +38,13 @@ def get_fracs(celltype, gene):
     }
 
 
-@dataapp.route("/de_table/<celltype>")
+@app.route("/de_table/<celltype>")
 def get_de_table(celltype):
     return dc.get_de_table(celltype).to_dict()
 
-@dataapp.route("/spline")
+@app.route("/spline")
 def get_spline():
     return jsonify(dc.get_spline().tolist())
 
 if __name__ == "__main__":
-    dataapp.run()
+    app.run()

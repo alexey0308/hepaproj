@@ -1,6 +1,7 @@
 import os
 import re
 
+from re import split
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -20,13 +21,14 @@ app = dash.Dash(name=__name__, assets_folder="assets")
 server = app.server
 reqsession = Session()
 
-DATAHOST = os.getenv("DATAHOST") or "http://127.0.0.1:5080"
-PLOTTINGHOST = os.getenv("PLOTTINGHOST") or "http://127.0.0.1:5081"
+DATAHOST = os.getenv("DATAHOST") or "http://127.0.0.1:5081"
+PLOTTINGHOST = os.getenv("PLOTTINGHOST") or "http://127.0.0.1:5082"
+REPORTING_API = os.getenv("REPORTING_API") or "http://127.0.0.1:5083"
 
 
-def celltypeDrop():
+def celltypeDrop(id="cellTypeSelector"):
     return dcc.RadioItems(
-        id="cellTypeSelector",
+        id=id,
         options=[
             {"label": "hepatocytes", "value": "hep"},
             {"label": "lsec", "value": "lsec"},
@@ -86,15 +88,14 @@ def splitByDelimiters(x):
     return re.split("[,/;\t ]", x)
 
 
-# @app.server.route("/genes", methods=["POST"])
-# def genesZip():
-#     celltype = request.form['cellTypeInput']
-#     genes = splitByDelimiters(request.form['genesInput'])
-#     buf = createGenesZip(genes, DATA[celltype], SPLINE,
-#                          width=1000, height=800,
-#                          celltype=celltype)
-#     buf.seek(0)
-#     return flask.send_file(buf, attachment_filename="genes.zip")
+@app.server.route("/genes-plots/", methods=["POST"])
+def genesZip():
+    # import pdb; pdb.set_trace()
+    # celltype = request.form["celltype"]
+    celltype = "hep"
+    genes = filter(None, splitByDelimiters(request.form["geneList"]))
+    r = reqsession.post(f"{REPORTING_API}/zip/{celltype}", dict(genes="a"))
+    return r.content
 
 
 def downloadButton(uri):
@@ -104,6 +105,7 @@ def downloadButton(uri):
         method="post",
         children=[
             dcc.Input(id="geneFormInput", name="geneList"),
+
             html.Button(className="button", type="submit", children=["download"]),
         ],
     )
@@ -133,7 +135,7 @@ app.layout = html.Div(
                     children=[celltypeDrop(), dcc.Dropdown(id="geneListDrop")],
                     id="selectorsContainer",
                 ),
-                html.Div(children=[downloadButton("genes")]),
+                html.Div(children=[downloadButton("genes-plots/")]),
                 html.H3("Comparison along the central(0.0)-portal(1.0) axis"),
                 resultTable(),
             ],

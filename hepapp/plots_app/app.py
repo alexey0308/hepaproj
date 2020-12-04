@@ -8,9 +8,9 @@ from requests import Session
 
 from .plots import plotGeneLines, plotGeneScatter
 
-plotapp = Flask("plot")
+app = Flask("plot")
 reqsession = Session()
-DATAHOST = os.getenv("DATAHOST") or "http://127.0.0.1:5080"
+DATAHOST = os.getenv("DATAHOST") or "http://127.0.0.1:5081"
 
 
 def request_json_data(url):
@@ -30,7 +30,7 @@ def compute_mouse_splines(betas, spline, anno):
     return res
 
 
-@plotapp.route("/lines/<celltype>/<gene>")
+@app.route("/lines/<celltype>/<gene>")
 def plot_line(celltype, gene):
     betas = pd.DataFrame(request_json_data(f"/betas/{celltype}/{gene}"))
     if betas.empty:
@@ -42,7 +42,7 @@ def plot_line(celltype, gene):
     return Response(fig.to_json(), mimetype="application/json", status=200)
 
 
-@plotapp.route("/scatter/<celltype>/<gene>")
+@app.route("/scatter/<celltype>/<gene>")
 def plot_scatter(celltype, gene):
     anno = request_json_data(f"/cell_anno/{celltype}")
     fracs = request_json_data(f"/fracs/{celltype}/{gene}")["fracs"]
