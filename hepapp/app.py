@@ -1,6 +1,7 @@
 import os
 import re
-
+import sys
+from io import BytesIO
 from re import split
 import dash
 import dash_core_components as dcc
@@ -11,7 +12,7 @@ import numpy as np
 import pandas as pd
 import yaml
 from dash.dependencies import Input, Output
-from flask import request
+from flask import request, send_file, Response, make_response
 from plotly.io import from_json
 from requests import Session
 
@@ -90,12 +91,14 @@ def splitByDelimiters(x):
 
 @app.server.route("/genes-plots/", methods=["POST"])
 def genesZip():
-    # import pdb; pdb.set_trace()
     # celltype = request.form["celltype"]
     celltype = "hep"
-    genes = filter(None, splitByDelimiters(request.form["geneList"]))
-    r = reqsession.post(f"{REPORTING_API}/zip/{celltype}", dict(genes="a"))
-    return r.content
+    ## 0610005c13rik/0610010f05rik
+    genes = list(filter(None, splitByDelimiters(request.form["geneList"])))
+    # genes = pd.Series(reqsession.get(f"{DATAHOST}/genes/{celltype}").json()).to_list()[0:5]
+    r = reqsession.post(f"{REPORTING_API}/zip/{celltype}", json=dict(genes=genes))
+
+    return send_file(BytesIO(r.content), mimetype="application/zip")
 
 
 def downloadButton(uri):
