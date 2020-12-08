@@ -1,0 +1,71 @@
+version: "3.7"
+
+services:
+  main_app:
+    build:
+      context: .
+    restart: unless-stopped
+    networks:
+      - hepapp_network
+    depends_on:
+      - data_provider
+      - plotting
+      - reporter
+    ports:
+      - 5071:5080
+    environment:
+      DATAHOST: "http://data_provider:5080"
+      PLOTTINGHOST: "http://plotting:5080"
+      REPORTING_API: "http://reporter:5080"
+    command:
+      gunicorn -b 0.0.0.0:5080 hepapp.app:server --reload -t 3000
+
+  reporter:
+    build:
+      context: .
+    restart: unless-stopped
+    networks:
+      - hepapp_network
+    depends_on:
+      - data_provider
+      - plotting
+    expose:
+      - 5083
+    environment:
+      PLOTTINGHOST: "http://plotting:5080"
+    command:
+      gunicorn -b 0.0.0.0:5080 hepapp.report.app:app --reload -t 3000
+
+
+  plotting:
+    build:
+      context: .
+    restart: unless-stopped
+    networks:
+      - hepapp_network
+    depends_on:
+      - data_provider
+    expose:
+      - 5080
+    environment:
+      DATAHOST: "http://data_provider:5080"
+    command:
+      gunicorn -b 0.0.0.0:5080 hepapp.plots_app.app:app --reload -t 3000
+
+  data_provider:
+    build:
+      context: .
+    restart: unless-stopped
+    networks:
+      - hepapp_network
+    volumes:
+      - ./data:/app/data
+    expose:
+      - 5080
+    command:
+      gunicorn -b 0.0.0.0:5080 hepapp.data_app.app:app --reload
+
+networks:
+  hepapp_network:
+    driver: bridge
+
