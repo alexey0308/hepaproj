@@ -16,7 +16,6 @@ from flask import request, send_file, Response, make_response
 from plotly.io import from_json
 from requests import Session
 
-from .plots_app.plots import plotGeneLines, plotGeneScatter
 
 app = dash.Dash(name=__name__, assets_folder="assets")
 server = app.server

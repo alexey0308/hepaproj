@@ -32,7 +32,6 @@ def createZip(celltype, genes):
         return {gene: get_plot(celltype, gene, plot_type) for gene in genes}
 
     figs = {plot_type: make_plots(plot_type) for plot_type in plot_types}
-    import pdb; pdb.set_trace()
     buf = io.BytesIO()
     zipbuf = zipfile.ZipFile(buf, "w")
     for plot_type in plot_types:
