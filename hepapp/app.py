@@ -100,14 +100,18 @@ def genesZip():
     return send_file(BytesIO(r.content), mimetype="application/zip")
 
 
-def downloadButton(uri):
+@app.callback(
+    Output("zipButton", "children"),
+    Input("cellTypeSelector", "value"),
+)
+def downloadButton(celltype):
     button = html.Form(
-        action=uri,
+        action="/genes-plots/",
         target="_blank",
         method="post",
         children=[
             dcc.Input(id="geneFormInput", name="geneList"),
-
+            dcc.Input(id="hiddenCellType", name="celltype", value=celltype, type="hidden"),
             html.Button(className="button", type="submit", children=["download"]),
         ],
     )
@@ -137,7 +141,7 @@ app.layout = html.Div(
                     children=[celltypeDrop(), dcc.Dropdown(id="geneListDrop")],
                     id="selectorsContainer",
                 ),
-                html.Div(children=[downloadButton("genes-plots/")]),
+                html.Div(id="zipButton"),
                 html.H3("Comparison along the central(0.0)-portal(1.0) axis"),
                 resultTable(),
             ],
