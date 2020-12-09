@@ -15,7 +15,7 @@ services:
       - 5071:5080
     env_file: .env
     command:
-      gunicorn -w 10 -b 0.0.0.0:5080 hepapp.app:server --reload -t 60
+      gunicorn -w 10 -b 0.0.0.0:5080 hepapp.app:server --reload -t 300
 
   reporter:
     build:
@@ -30,7 +30,7 @@ services:
       - 5080
     env_file: .env
     command:
-      gunicorn -b 0.0.0.0:5080 hepapp.report.app:app --reload -t 20
+      gunicorn -b 0.0.0.0:5080 hepapp.report.app:app --reload -t 300
 
 
   plotting:
@@ -45,7 +45,7 @@ services:
       - 5080
     env_file: .env
     command:
-      gunicorn -b 0.0.0.0:5080 hepapp.plots_app.app:app --reload -t 30
+      gunicorn -b 0.0.0.0:5080 hepapp.plots_app.app:app --reload -t 300
 
   data_provider:
     build:
@@ -59,7 +59,7 @@ services:
       - 5080
     env_file: .env
     command:
-      gunicorn -b 0.0.0.0:5080 hepapp.data_app.app:app --reload -t 30
+      gunicorn -b 0.0.0.0:5080 hepapp.data_app.app:app --reload -t 300
 
 networks:
   hepapp_network:
