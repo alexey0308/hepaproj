@@ -90,11 +90,10 @@ def splitByDelimiters(x):
 
 @app.server.route("/genes-plots/", methods=["POST"])
 def genesZip():
-    # celltype = request.form["celltype"]
-    celltype = "hep"
-    ## 0610005c13rik/0610010f05rik
+    celltype = request.form["celltype"]
     genes = list(filter(None, splitByDelimiters(request.form["geneList"])))
-    # genes = pd.Series(reqsession.get(f"{DATAHOST}/genes/{celltype}").json()).to_list()[0:5]
+    if len(genes) > 40:
+        return "Too many genes", 404
     r = reqsession.post(f"{REPORTING_API}/zip/{celltype}", json=dict(genes=genes))
 
     return send_file(BytesIO(r.content), mimetype="application/zip")
