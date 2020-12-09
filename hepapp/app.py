@@ -105,7 +105,7 @@ def genesZip():
 )
 def downloadButton(celltype):
     button = html.Form(
-        action="genes-plots/",
+        action="./genes-plots/",
         target="_blank",
         method="post",
         children=[
