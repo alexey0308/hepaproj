@@ -16,7 +16,6 @@ def plotGeneScatter(etaq, values, groups):
     return fig
 
 def plotGeneLines(etaq, values, mouse, groups):
-    values = np.exp(values/2)
     fig = px.line(x=etaq.values,
                   y=values.values,
                   color=groups,

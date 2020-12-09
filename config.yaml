@@ -1,0 +1,15 @@
+datadir: data
+spline-files:
+  betas: betas.csv
+  spline: spline.csv
+celltypes-files:
+  hep:
+    anno: hep-anno.csv
+    genes: hep-genes.csv
+    de: hep-glm-de-test.csv
+    fracs: hep-mm.mtx
+  lsec:
+    anno: lsec-anno.csv
+    genes: lsec-genes.csv
+    de: lsec-glm-de-test.csv
+    fracs: lsec-mm.mtx

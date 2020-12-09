@@ -1,0 +1,67 @@
+version: "3.7"
+
+services:
+  main_app:
+    build:
+      context: .
+    restart: unless-stopped
+    networks:
+      - hepapp_network
+    depends_on:
+      - data_provider
+      - plotting
+      - reporter
+    ports:
+      - 5071:5080
+    env_file: .env
+    command:
+      gunicorn -w 10 -b 0.0.0.0:5080 hepapp.app:server --reload -t 60
+
+  reporter:
+    build:
+      context: .
+    restart: always
+    networks:
+      - hepapp_network
+    depends_on:
+      - data_provider
+      - plotting
+    expose:
+      - 5080
+    env_file: .env
+    command:
+      gunicorn -b 0.0.0.0:5080 hepapp.report.app:app --reload -t 20
+
+
+  plotting:
+    build:
+      context: .
+    restart: unless-stopped
+    networks:
+      - hepapp_network
+    depends_on:
+      - data_provider
+    expose:
+      - 5080
+    env_file: .env
+    command:
+      gunicorn -b 0.0.0.0:5080 hepapp.plots_app.app:app --reload -t 30
+
+  data_provider:
+    build:
+      context: .
+    restart: unless-stopped
+    networks:
+      - hepapp_network
+    volumes:
+      - ./data:/app/data
+    expose:
+      - 5080
+    env_file: .env
+    command:
+      gunicorn -b 0.0.0.0:5080 hepapp.data_app.app:app --reload -t 30
+
+networks:
+  hepapp_network:
+    driver: bridge
+
