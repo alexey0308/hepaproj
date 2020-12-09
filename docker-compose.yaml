@@ -13,26 +13,22 @@ services:
       - reporter
     ports:
       - 5071:5080
-    environment:
-      DATAHOST: "http://data_provider:5080"
-      PLOTTINGHOST: "http://plotting:5080"
-      REPORTING_API: "http://reporter:5080"
+    env_file: .env
     command:
-      gunicorn -b 0.0.0.0:5080 hepapp.app:server --reload -t 3000
+      gunicorn -w 10 -b 0.0.0.0:5080 hepapp.app:server --reload -t 3000
 
   reporter:
     build:
       context: .
-    restart: unless-stopped
+    restart: always
     networks:
       - hepapp_network
     depends_on:
       - data_provider
       - plotting
     expose:
-      - 5083
-    environment:
-      PLOTTINGHOST: "http://plotting:5080"
+      - 5080
+    env_file: .env
     command:
       gunicorn -b 0.0.0.0:5080 hepapp.report.app:app --reload -t 3000
 
@@ -47,8 +43,7 @@ services:
       - data_provider
     expose:
       - 5080
-    environment:
-      DATAHOST: "http://data_provider:5080"
+    env_file: .env
     command:
       gunicorn -b 0.0.0.0:5080 hepapp.plots_app.app:app --reload -t 3000
 
@@ -62,6 +57,7 @@ services:
       - ./data:/app/data
     expose:
       - 5080
+    env_file: .env
     command:
       gunicorn -b 0.0.0.0:5080 hepapp.data_app.app:app --reload
 
