@@ -24,6 +24,7 @@ reqsession = Session()
 DATAHOST = os.getenv("DATAHOST") or "http://127.0.0.1:5081"
 PLOTTINGHOST = os.getenv("PLOTTINGHOST") or "http://127.0.0.1:5082"
 REPORTING_API = os.getenv("REPORTING_API") or "http://127.0.0.1:5083"
+APP_PREFIX = os.getenv("DASH_REQUESTS_PATHNAME_PREFIX") or ""
 
 
 def celltypeDrop(id="cellTypeSelector"):
@@ -105,7 +106,7 @@ def genesZip():
 )
 def downloadButton(celltype):
     button = html.Form(
-        action="./genes-plots/",
+        action=APP_PREFIX + "/genes-plots/",
         target="_blank",
         method="post",
         children=[
