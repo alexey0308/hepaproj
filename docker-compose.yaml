@@ -59,7 +59,7 @@ services:
       - 5080
     env_file: .env
     command:
-      gunicorn -b 0.0.0.0:5080 hepapp.data_app.app:app --reload -t 30
+      gunicorn -b 0.0.0.0:5080 hepapp.data_app.app:app --reload -t 300
 
 networks:
   hepapp_network:
