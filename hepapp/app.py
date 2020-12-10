@@ -12,10 +12,11 @@ import numpy as np
 import pandas as pd
 import yaml
 from dash.dependencies import Input, Output
-from flask import request, send_file, Response, make_response
+from flask import request, send_file, Response, make_response, abort
 from plotly.io import from_json
 from requests import Session
 
+import logging
 
 app = dash.Dash(name=__name__, assets_folder="assets")
 server = app.server
@@ -93,11 +94,18 @@ def splitByDelimiters(x):
 def genesZip():
     celltype = request.form["celltype"]
     genes = list(filter(None, splitByDelimiters(request.form["geneList"])))
+    app.logger.info("genes:" + ",".join(genes))
     if len(genes) > 40:
-        return "Too many genes", 404
+        return "Too many genes", 500
+    genes = [x.lower() for x in genes]
     r = reqsession.post(f"{REPORTING_API}/zip/{celltype}", json=dict(genes=genes))
-
-    return send_file(BytesIO(r.content), mimetype="application/zip")
+    print(r.ok, r.status_code, r)
+    if r.ok:
+        if r.status_code == 204:
+            return "No figures..."
+        return send_file(BytesIO(r.content), mimetype="application/zip")
+    else:
+        abort(500)
 
 
 @app.callback(
@@ -111,7 +119,9 @@ def downloadButton(celltype):
         method="post",
         children=[
             dcc.Input(id="geneFormInput", name="geneList"),
-            dcc.Input(id="hiddenCellType", name="celltype", value=celltype, type="hidden"),
+            dcc.Input(
+                id="hiddenCellType", name="celltype", value=celltype, type="hidden"
+            ),
             html.Button(className="button", type="submit", children=["download"]),
         ],
     )

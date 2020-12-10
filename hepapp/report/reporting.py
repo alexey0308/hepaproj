@@ -34,10 +34,14 @@ def createZip(celltype, genes):
     figs = {plot_type: make_plots(plot_type) for plot_type in plot_types}
     buf = io.BytesIO()
     zipbuf = zipfile.ZipFile(buf, "w")
+    file_number = 0
     for plot_type in plot_types:
         for gene, fig in figs[plot_type].items():
             if fig is not None and len(fig.data) > 0:
                 write_image_to_zip(zipbuf, f"{plot_type}-{gene}.png", fig)
+                file_number += 1
     zipbuf.close()
+    if file_number == 0:
+        return None
     buf.seek(0)
     return buf
