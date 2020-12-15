@@ -15,9 +15,9 @@ services:
       - 5071:5080
     env_file: .env
     command:
-      gunicorn -w 10 -b 0.0.0.0:5080 hepapp.app:server --reload -t 300
+      gunicorn -w 1 -b 0.0.0.0:5080 hepapp.app:server --reload -t 300
     volumes:
-      - ./images:/images
+      - ./images:/app/images
 
   reporter:
     build:
@@ -32,10 +32,12 @@ services:
     expose:
       - 5080
     env_file: .env
+    environment:
+      BROKER_URL: "pyamqp://guest@rabbit//"
     command:
-      gunicorn -b 0.0.0.0:5080 hepapp.report.app:app --reload -t 300
+      hepapp/report/run-reporter.sh
     volumes:
-      - ./images:/images
+      - ./images:/app/images
 
   rabbit:
     image: rabbitmq

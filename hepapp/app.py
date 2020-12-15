@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 import yaml
 from dash.dependencies import Input, Output
-from flask import request, send_file, Response, make_response, abort
+from flask import request, send_file, Response, make_response, abort, redirect
 from plotly.io import from_json
 from requests import Session
 
@@ -95,7 +95,7 @@ def genesZip():
     celltype = request.form["celltype"]
     genes = list(filter(None, splitByDelimiters(request.form["geneList"])))
     app.logger.info("genes:" + ",".join(genes))
-    if len(genes) > 40:
+    if len(genes) > 400:
         return "Too many genes", 500
     genes = [x.lower() for x in genes]
     r = reqsession.post(f"{REPORTING_API}/zip/{celltype}", json=dict(genes=genes))
@@ -103,10 +103,18 @@ def genesZip():
     if r.ok:
         if r.status_code == 204:
             return "No figures..."
-        return send_file(BytesIO(r.content), mimetype="application/zip")
+        return redirect(f"/tasks/{r.text}")
     else:
         abort(500)
 
+@app.server.route("/tasks/<fileid>")
+def getZipFile(fileid):
+    image_dir = "/app/images"
+    filepath = os.path.join(image_dir, fileid + ".zip")
+    if os.path.exists(filepath):
+        return send_file(filepath)
+    else:
+      return "Not finished, try later", 202
 
 @app.callback(
     Output("zipButton", "children"),

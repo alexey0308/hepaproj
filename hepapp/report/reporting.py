@@ -24,14 +24,13 @@ def write_image_to_buf(buf, filename, fig, **kwargs):
     with buf.open(filename, "w") as pngfile:
         fig.write_image(pngfile, "png", **kwargs)
 
-def writeZipTask(celltype, genes, fileid):
+def writeZipTask(celltype, genes, filepath):
     plot_types = ["scatter", "lines"]
-    image_dir = "images"
     def make_plots(plot_type):
         return {gene: get_plot(celltype, gene, plot_type) for gene in genes}
 
     figs = {plot_type: make_plots(plot_type) for plot_type in plot_types}
-    buf = io.FileIO(os.path.join(image_dir, fileid), mode="wb")
+    buf = io.FileIO(filepath, mode="wb")
     zipbuf = zipfile.ZipFile(buf, "w")
     file_number = 0
     for plot_type in plot_types:
@@ -40,7 +39,7 @@ def writeZipTask(celltype, genes, fileid):
                 write_image_to_buf(zipbuf, f"{plot_type}-{gene}.png", fig)
                 file_number += 1
     zipbuf.close()
-    return fileid
+    return filepath
 
 
 def createZip(celltype, genes):
