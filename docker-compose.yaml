@@ -16,6 +16,8 @@ services:
     env_file: .env
     command:
       gunicorn -w 10 -b 0.0.0.0:5080 hepapp.app:server --reload -t 300
+    volumes:
+      - ./images:/images
 
   reporter:
     build:
@@ -23,6 +25,7 @@ services:
     restart: always
     networks:
       - hepapp_network
+      - queue_network
     depends_on:
       - data_provider
       - plotting
@@ -31,7 +34,13 @@ services:
     env_file: .env
     command:
       gunicorn -b 0.0.0.0:5080 hepapp.report.app:app --reload -t 300
+    volumes:
+      - ./images:/images
 
+  rabbit:
+    image: rabbitmq
+    networks:
+      - queue_network
 
   plotting:
     build:
@@ -63,5 +72,7 @@ services:
 
 networks:
   hepapp_network:
+    driver: bridge
+  queue_network:
     driver: bridge
 
