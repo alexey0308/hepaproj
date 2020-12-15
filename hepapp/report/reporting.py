@@ -24,8 +24,10 @@ def write_image_to_buf(buf, filename, fig, **kwargs):
     with buf.open(filename, "w") as pngfile:
         fig.write_image(pngfile, "png", **kwargs)
 
+
 def writeZipTask(celltype, genes, filepath):
     plot_types = ["scatter", "lines"]
+
     def make_plots(plot_type):
         return {gene: get_plot(celltype, gene, plot_type) for gene in genes}
 
