@@ -32,12 +32,24 @@ services:
     expose:
       - 5080
     env_file: .env
-    environment:
-      BROKER_URL: "pyamqp://guest@rabbit//"
     command:
-      hepapp/report/run-reporter.sh
+      gunicorn -b 0.0.0.0:5080 hepapp.report.app:app --reload -t 300 
     volumes:
       - ./images:/app/images
+  worker:
+    build:
+      context: .
+    restart:
+      always
+    networks:
+      - hepapp_network
+      - queue_network
+    env_file: .env
+    command:
+      celery --app=hepapp.report.tasks:app worker -l INFO
+    volumes:
+      - ./images:/app/images
+
 
   rabbit:
     image: rabbitmq
