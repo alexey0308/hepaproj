@@ -1,4 +1,5 @@
 import os
+from time import sleep
 import re
 import sys
 from io import BytesIO
@@ -100,6 +101,7 @@ def genesZip():
     genes = [x.lower() for x in genes]
     r = reqsession.post(f"{REPORTING_API}/zip/{celltype}", json=dict(genes=genes))
     if r.ok:
+        sleep(5)
         task_id = r.json()["task_id"]
         return redirect(f"/tasks/{task_id}")
     else:
@@ -114,6 +116,8 @@ def getZipFile(task_id):
         return "Not finished, try to refresh in a while", 202
     print(r.content)
     filepath = r.json()["filepath"]
+    if r.json()["file_number"] == 0:
+        return "No figures available for these genes..."
     if os.path.exists(filepath):
         return send_file(os.path.abspath(filepath))
     else:
