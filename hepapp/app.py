@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 import yaml
 from dash.dependencies import Input, Output
-from flask import request, send_file, Response, make_response, abort, redirect
+from flask import request, send_file, Response, make_response, abort, redirect, url_for
 from plotly.io import from_json
 from requests import Session
 
@@ -103,7 +103,7 @@ def genesZip():
     if r.ok:
         sleep(5)
         task_id = r.json()["task_id"]
-        return redirect(f"/tasks/{task_id}")
+        return redirect(url_for(f"getZipFile", task_id=task_id, _external=True))
     else:
         abort(500)
 
