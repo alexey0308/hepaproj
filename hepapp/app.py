@@ -99,22 +99,27 @@ def genesZip():
         return "Too many genes", 500
     genes = [x.lower() for x in genes]
     r = reqsession.post(f"{REPORTING_API}/zip/{celltype}", json=dict(genes=genes))
-    print(r.ok, r.status_code, r)
     if r.ok:
-        if r.status_code == 204:
-            return "No figures..."
-        return redirect(f"/tasks/{r.text}")
+        task_id = r.json()["task_id"]
+        return redirect(f"/tasks/{task_id}")
     else:
         abort(500)
 
-@app.server.route("/tasks/<fileid>")
-def getZipFile(fileid):
+
+@app.server.route("/tasks/<task_id>")
+def getZipFile(task_id):
     image_dir = "/app/images"
-    filepath = os.path.join(image_dir, fileid + ".zip")
+    r = reqsession.get(f"{REPORTING_API}/task/{task_id}")
+    if r.status_code != 200:
+        return "Not finished, try to refresh in a while", 202
+    print(r.content)
+    filepath = r.json()["filepath"]
     if os.path.exists(filepath):
-        return send_file(filepath)
+        return send_file(os.path.abspath(filepath))
     else:
-      return "Not finished, try later", 202
+        return "Looks like the file is already removed, submit again."
+    return "Something went wrong", 500
+
 
 @app.callback(
     Output("zipButton", "children"),
