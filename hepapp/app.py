@@ -1,9 +1,11 @@
+import logging
 import os
-from time import sleep
 import re
 import sys
 from io import BytesIO
 from re import split
+from time import sleep
+
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -13,11 +15,10 @@ import numpy as np
 import pandas as pd
 import yaml
 from dash.dependencies import Input, Output
-from flask import request, send_file, Response, make_response, abort, redirect, url_for
+from flask import (Response, abort, make_response, redirect, request,
+                   send_file, url_for)
 from plotly.io import from_json
 from requests import Session
-
-import logging
 
 app = dash.Dash(name=__name__, assets_folder="assets")
 server = app.server
@@ -100,10 +101,11 @@ def genesZip():
         return "Too many genes", 500
     genes = [x.lower() for x in genes]
     r = reqsession.post(f"{REPORTING_API}/zip/{celltype}", json=dict(genes=genes))
+
     if r.ok:
-        sleep(5)
         task_id = r.json()["task_id"]
-        return redirect(url_for(f"getZipFile", task_id=task_id, _external=True))
+        sleep(3)
+        return redirect(url_for("getZipFile", task_id=task_id))
     else:
         abort(500)
 
