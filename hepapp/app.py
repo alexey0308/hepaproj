@@ -15,8 +15,7 @@ import numpy as np
 import pandas as pd
 import yaml
 from dash.dependencies import Input, Output
-from flask import (Response, abort, make_response, redirect, request,
-                   send_file, url_for)
+from flask import Response, abort, make_response, redirect, request, send_file, url_for
 from plotly.io import from_json
 from requests import Session
 
@@ -41,15 +40,40 @@ def celltypeDrop(id="cellTypeSelector"):
     )
 
 
-def resultTable():
-    dt = dash_table.DataTable(
-        id="resultTable", page_size=30, filter_action="native", sort_action="native"
+def getEdgesTable():
+    tbl = pd.DataFrame(reqsession.get(f"{DATAHOST}/edges_table").json())
+    edges_data = tbl.to_dict("records")
+    columns = [{"id": c, "name": c} for c in tbl.columns]
+    edgesTestTable = dash_table.DataTable(
+        id="edgesTestTable",
+        page_size=30,
+        filter_action="native",
+        sort_action="native",
+        data=edges_data,
+        columns=columns,
     )
-    return dt
+    return edgesTestTable
+
+
+def resultTable():
+    genotypeTestsTable = dash_table.DataTable(
+        id="genotypeTestsTable",
+        page_size=30,
+        filter_action="native",
+        sort_action="native",
+    )
+    tabs = dcc.Tabs(
+        id="tables",
+        children=[
+            dcc.Tab(children=genotypeTestsTable, label="Testing DKO vs WT"),
+            dcc.Tab(children=getEdgesTable(), label="Testing PV vs CV edge"),
+        ],
+    )
+    return tabs
 
 
 @app.callback(
-    [Output("resultTable", "data"), Output("resultTable", "columns")],
+    [Output("genotypeTestsTable", "data"), Output("genotypeTestsTable", "columns")],
     Input("cellTypeSelector", "value"),
 )
 def updateResultTable(celltype):
@@ -137,6 +161,9 @@ def downloadButton(celltype):
         target="_blank",
         method="post",
         children=[
+            html.P(
+                children="insert gene names, separated by any of ',', '/', ';' or space:"
+            ),
             dcc.Input(id="geneFormInput", name="geneList"),
             dcc.Input(
                 id="hiddenCellType", name="celltype", value=celltype, type="hidden"
@@ -151,6 +178,7 @@ app.layout = html.Div(
     children=[
         html.Div(
             children=[
+                html.H3("Comparison along the central(0.0)-portal(1.0) axis"),
                 html.H3(id="geneHeader", style={"color": "dodgerblue"}),
                 html.Div(
                     id="figures",
@@ -171,7 +199,6 @@ app.layout = html.Div(
                     id="selectorsContainer",
                 ),
                 html.Div(id="zipButton"),
-                html.H3("Comparison along the central(0.0)-portal(1.0) axis"),
                 resultTable(),
             ],
             style={"width": "80%", "margin": "auto"},
