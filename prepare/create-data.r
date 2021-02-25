@@ -52,12 +52,16 @@ genes <- write.csv(rownames(fracs)[testGenes], file.path(pytestdir, "lsec-genes.
 tbls <- list(
   "hep-glm-de-test.csv",
   "lsec-glm-de-test.csv",
+  "edges-test-hep-lsec.csv",
   "spline.csv"
 )
 for (x in tbls) {
   file.copy(
     file.path("results", "tables", x),
     file.path(pydir, x), overwrite = TRUE)
+  file.copy(
+    file.path("results", "tables", x),
+    file.path(pytestdir, x), overwrite = TRUE)
 }
 
 { cat("save beta values for every mouse... ")
