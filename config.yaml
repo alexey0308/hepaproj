@@ -13,3 +13,4 @@ celltypes-files:
     genes: lsec-genes.csv
     de: lsec-glm-de-test.csv
     fracs: lsec-mm.mtx
+edges-tests: edges-test-hep-lsec.csv
